@@ -1,0 +1,23 @@
+<resources>
+    <string name="app_name">Popular Movies</string>
+    <string name="popular_movies_title">Popular Movies</string>
+    <string name="top_rated_movies_title">Top Rated Movies</string>
+    <string name="favorite_movies_title">Favorite Movies</string>
+    <string name="title">Title</string>
+    <string name="Overview">Overview</string>
+    <string name="releaseDate">Release Date</string>
+    <string name="popularity">Popularity</string>
+    <string name="reviews">Reviews</string>
+    <string name="ReviewText"> Another grandiloquent movie from Christoper Nolan.\r\n\r\nThe cast
+        is good, and McConaughey performs a role made for himself. The photography is very nice
+        but the movie commits all the same mistakes than previous Nolan\'s movies.
+        I think mistakes but it may be that they are the points Nolan fans enjoy
+        the most.\r\n\r\n* The story makes you believe it is a realy deeply thought plot but,
+        in the end, it has so basic mistakes and stupidities that make it nonsensical.\r\n* There
+        is a general ambience of every moment being epic; deep, solemn and smart dialogues but, at
+        some point our highly trained engineer and pilot behaves really stupidly.\r\n* To keep the
+        mentioned constant feeling of being in an epic moment, Nolan uses a thumping and insistent
+        soundtrack. As it is not a moment, but a 3h movie, it is really tiresome.\r\n\r\nAll in all,
+        the movie is OK but you can only think this is a great movie if you are a real Nolan fan.
+    </string>
+</resources>

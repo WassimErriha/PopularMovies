@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/action_popular_movies"
+        android:orderInCategory="1"
+        android:title="@string/popular_movies_title"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_top_rated_movies"
+        android:orderInCategory="2"
+        android:title="@string/top_rated_movies_title"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_favorite_movies"
+        android:orderInCategory="3"
+        android:title="@string/favorite_movies_title"
+        app:showAsAction="never" />
+
+</menu>
