@@ -1,15 +1,10 @@
 package com.example.wassim.popularmovies;
 
 import android.app.LoaderManager;
-import android.content.Context;
 import android.content.Intent;
 import android.content.Loader;
 import android.content.pm.ActivityInfo;
-import android.content.res.Configuration;
 import android.database.Cursor;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
@@ -22,9 +17,9 @@ import android.widget.ProgressBar;
 
 import com.example.wassim.popularmovies.data.MovieContract.MovieEntry;
 
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+
 
 public class MainActivity extends AppCompatActivity
         implements LoaderManager.LoaderCallbacks, MovieAdapter.onPosterClickListener {
@@ -36,7 +31,6 @@ public class MainActivity extends AppCompatActivity
     public static String API_KEY = "<API_KEY>";  //TODO insert api key here
     public static String LANGUAGE_PARAM = "language";
     public static String LANGUAGE_VALUE = "en";
-    public static boolean isConnected;
     public static ArrayList<String> favoriteMoviesArrayList;
     private static String POPULAR_MOVIES_PATH = "popular";
     private static String TOP_RATED_MOVIES_PATH = "top_rated";
@@ -50,28 +44,6 @@ public class MainActivity extends AppCompatActivity
     private String activityTitle = "Popular Movies";
     private String mMoviesPath = FIRST_LOAD_PATH;
 
-    /**
-     * helper method for building Url
-     *
-     * @param path popularMovies or topRatedMovies endpoints
-     * @return query url.
-     */
-    public static URL buildUrlWithPath(String path) {
-        Uri builtUri = Uri.parse(BASE_URL).buildUpon()
-                .appendPath(path)
-                .appendQueryParameter(API_KEY_PARAM, API_KEY)
-                .appendQueryParameter(LANGUAGE_PARAM, LANGUAGE_VALUE)
-                .build();
-
-        URL url = null;
-        try {
-            url = new URL(builtUri.toString());
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        }
-        return url;
-    }
-
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -80,24 +52,15 @@ public class MainActivity extends AppCompatActivity
             activityTitle = savedInstanceState.getString("activityTitle");
         }
 
-        setTitle(activityTitle);
-
-        ConnectivityManager cm =
-                (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
-        isConnected = ((activeNetwork != null) && (activeNetwork.isConnectedOrConnecting()));
-
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
         recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
         noInternetConnection = (ImageView) findViewById(R.id.no_internet_connection);
-
-        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT)
-            recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
-        else
-            recyclerView.setLayoutManager(new GridLayoutManager(this, 4));
+        setTitle(activityTitle);
+        recyclerView.setLayoutManager(new GridLayoutManager(this, Utility.calculateNoOfColumns(this)));
         recyclerView.setHasFixedSize(true);
-        url = buildUrlWithPath(mMoviesPath);
+        url = Utility.buildUrlWithPath(mMoviesPath);
         showProgressBar();
+        boolean isConnected = Utility.isNetworkAvailable(this);
         if (isConnected) {
             getLoaderManager().initLoader(mLoaderID
                     , null
@@ -117,6 +80,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     protected void onPostResume() {
+        //Update favoriteMoviesArrayList after navigating back from MovieDetailsActivity
         favoriteMoviesArrayList = new ArrayList<>();
         String[] favoriteMovieIdsProjection = {MovieEntry.COLUMN_MOVIE_ID};
         Cursor fmCursor = getContentResolver().query(MovieEntry.CONTENT_URI
@@ -189,7 +153,7 @@ public class MainActivity extends AppCompatActivity
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_popular_movies:
-                url = buildUrlWithPath(POPULAR_MOVIES_PATH);
+                url = Utility.buildUrlWithPath(POPULAR_MOVIES_PATH);
                 setTitle(R.string.popular_movies_title);
                 showProgressBar();
                 getLoaderManager().restartLoader(MOVIE_ARRAY_LIST_LOADER_ID
@@ -197,7 +161,7 @@ public class MainActivity extends AppCompatActivity
                         this);
                 break;
             case R.id.action_top_rated_movies:
-                url = buildUrlWithPath(TOP_RATED_MOVIES_PATH);
+                url = Utility.buildUrlWithPath(TOP_RATED_MOVIES_PATH);
                 setTitle(R.string.top_rated_movies_title);
                 showProgressBar();
                 getLoaderManager().restartLoader(MOVIE_ARRAY_LIST_LOADER_ID

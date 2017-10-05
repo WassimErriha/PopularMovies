@@ -226,7 +226,7 @@ public class MovieDetailsActivity extends AppCompatActivity
         }
         // finally if user is is offline, hide movieTrailersRecyclerView
         mBinding.movieTrailersRecyclerView.setVisibility(
-                !MainActivity.isConnected ? View.GONE : View.VISIBLE);
+                !Utility.isNetworkAvailable(this) ? View.GONE : View.VISIBLE);
     }
 
     public void loadThumbnail(String path) {
