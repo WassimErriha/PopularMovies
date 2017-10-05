@@ -50,6 +50,27 @@ public class MainActivity extends AppCompatActivity
     private String activityTitle = "Popular Movies";
     private String mMoviesPath = FIRST_LOAD_PATH;
 
+    /**
+     * helper method for building Url
+     *
+     * @param path popularMovies or topRatedMovies endpoints
+     * @return query url.
+     */
+    public static URL buildUrlWithPath(String path) {
+        Uri builtUri = Uri.parse(BASE_URL).buildUpon()
+                .appendPath(path)
+                .appendQueryParameter(API_KEY_PARAM, API_KEY)
+                .appendQueryParameter(LANGUAGE_PARAM, LANGUAGE_VALUE)
+                .build();
+
+        URL url = null;
+        try {
+            url = new URL(builtUri.toString());
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+        return url;
+    }
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -113,28 +134,6 @@ public class MainActivity extends AppCompatActivity
             fmCursor.close();
         }
         super.onPostResume();
-    }
-
-    /**
-     * helper method for building Url
-     *
-     * @param path popularMovies or topRatedMovies endpoints
-     * @return query url.
-     */
-    public static URL buildUrlWithPath(String path) {
-        Uri builtUri = Uri.parse(BASE_URL).buildUpon()
-                .appendPath(path)
-                .appendQueryParameter(API_KEY_PARAM, API_KEY)
-                .appendQueryParameter(LANGUAGE_PARAM, LANGUAGE_VALUE)
-                .build();
-
-        URL url = null;
-        try {
-            url = new URL(builtUri.toString());
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        }
-        return url;
     }
 
     private void showProgressBar() {

@@ -28,7 +28,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 
-public class MovieDetailsActivity extends AppCompatActivity {
+public class MovieDetailsActivity extends AppCompatActivity
+        implements TrailersAdapter.onTrailerButtonClickListener {
 
     public static final int IS_FAVORITE_TRUE = 1;
     private static final String BASE_IMAGE_URL = "http://image.tmdb.org/t/p/";
@@ -41,11 +42,12 @@ public class MovieDetailsActivity extends AppCompatActivity {
     public static ArrayList<String> favoriteMoviesArrayList;
     private static Movie mMovie;
     public ActivityMovieDetailsBinding mBinding;
-    private Uri youtubeTrailerUri;
     private RecyclerView reviewsRecyclerView;
-    private ReviewListAdapter reviewListAdapter;
+    private ReviewsAdapter reviewsAdapter;
     private Bitmap mPosterBitmap;
     private String movieId;
+    private RecyclerView trailersRecyclerView;
+    private TrailersAdapter trailersAdapter;
 
 
     @SuppressLint("StaticFieldLeak")
@@ -66,21 +68,23 @@ public class MovieDetailsActivity extends AppCompatActivity {
         favoriteMoviesArrayList = new ArrayList<>();
         favoriteMoviesArrayList.addAll(MainActivity.favoriteMoviesArrayList);
 
-        AsyncTask<String, Void, String> mGetTrailerId =
-                new AsyncTask<String, Void, String>() {
+        AsyncTask<String, Void, ArrayList<String>> getTrailerIds =
+                new AsyncTask<String, Void, ArrayList<String>>() {
                     @Override
-                    protected String doInBackground(String... strings) {
-                        return QueryUtils.fetchTrailerId(strings[0]);
+                    protected ArrayList<String> doInBackground(String... strings) {
+                        return QueryUtils.fetchTrailerIds(strings[0]);
                     }
 
                     @Override
-                    protected void onPostExecute(String trailerId) {
-                        if (trailerId != null)
-                            youtubeTrailerUri = buildYoutubeTrailerUrl(trailerId);
+                    protected void onPostExecute(ArrayList<String> trailerIds) {
+                        if (trailerIds != null) {
+                            trailersAdapter = new TrailersAdapter(trailerIds, MovieDetailsActivity.this);
+                            trailersRecyclerView.setAdapter(trailersAdapter);
+                        }
                     }
                 }.execute(movieTrailerUri.toString());
 
-        AsyncTask<String, Void, ArrayList<Review>> mGetReviews =
+        AsyncTask<String, Void, ArrayList<Review>> getReviews =
                 new AsyncTask<String, Void, ArrayList<Review>>() {
                     @Override
                     protected ArrayList<Review> doInBackground(String... strings) {
@@ -90,15 +94,15 @@ public class MovieDetailsActivity extends AppCompatActivity {
                     @Override
                     protected void onPostExecute(ArrayList<Review> reviews) {
                         if (reviews != null) {
-                            reviewListAdapter = new ReviewListAdapter(reviews);
-                            reviewsRecyclerView.setAdapter(MovieDetailsActivity.this.reviewListAdapter);
+                            reviewsAdapter = new ReviewsAdapter(reviews);
+                            reviewsRecyclerView.setAdapter(reviewsAdapter);
                         } else
                             Toast.makeText(MovieDetailsActivity.this
                                     , "No reviews for this movie yet.", Toast.LENGTH_LONG).show();
                     }
                 }.execute(movieReviewsUri.toString());
 
-        reviewsRecyclerView = ((RecyclerView) findViewById(R.id.reviews_recycler_view));
+        reviewsRecyclerView = (RecyclerView) findViewById(R.id.reviews_recycler_view);
         reviewsRecyclerView.setLayoutManager(new GridLayoutManager(MovieDetailsActivity.this
                 , 1));
         reviewsRecyclerView.setHasFixedSize(true);
@@ -113,6 +117,10 @@ public class MovieDetailsActivity extends AppCompatActivity {
                     deleteMovieFromFavorites();
             }
         });
+        trailersRecyclerView = (RecyclerView) findViewById(R.id.movie_trailers_recycler_view);
+        trailersRecyclerView.setLayoutManager(new GridLayoutManager(MovieDetailsActivity.this
+                , 1));
+        trailersRecyclerView.setHasFixedSize(true);
     }
 
     @Override
@@ -179,7 +187,7 @@ public class MovieDetailsActivity extends AppCompatActivity {
         String fileName = mMovie.getmID() + ".png";
         final FileOutputStream fos;
         try {
-            fos = openFileOutput(fileName, context.MODE_PRIVATE);
+            fos = openFileOutput(fileName, MODE_PRIVATE);
             mPosterBitmap.compress(Bitmap.CompressFormat.PNG, 90, fos);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -197,6 +205,7 @@ public class MovieDetailsActivity extends AppCompatActivity {
     private void bindDataToViews() {
         mBinding = (DataBindingUtil.setContentView(this, R.layout.activity_movie_details));
         String overview = "\t\t\t" + mMovie.getmOverview();
+
         String vote = mMovie.getmVoteAverage() + "/10";
         mBinding.movieOverview.setText(overview);
         mBinding.movieTitle.setText(mMovie.getmTitle());
@@ -204,13 +213,6 @@ public class MovieDetailsActivity extends AppCompatActivity {
         mBinding.voteCountTv.setText(mMovie.getmVoteCount());
         mBinding.popularityCountTv.setText(mMovie.getmPopularity());
         mBinding.releaseDateTv2.setText(mMovie.getmReleaseDate());
-        mBinding.playTrailerIv.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View view) {
-                Intent intent = new Intent(Intent.ACTION_VIEW);
-                intent.setData(youtubeTrailerUri);
-                MovieDetailsActivity.this.startActivity(intent);
-            }
-        });
         if (mMovie.getIsFavoriteMovie())
             mBinding.addImageButton.setImageResource(R.drawable.ic_done);
         String filePath = mMovie.getmID() + ".png";
@@ -222,8 +224,9 @@ public class MovieDetailsActivity extends AppCompatActivity {
             loadPoster(BASE_IMAGE_URL + POSTER_FORMAT + mMovie.getmPosterPath());
             loadThumbnail(BASE_IMAGE_URL + POSTER_FORMAT + mMovie.getmThumbnail());
         }
-        // finally if user is is offline, disable button for playing movie trailer
-        mBinding.playTrailerIv.setVisibility(!MainActivity.isConnected ? View.INVISIBLE : View.VISIBLE);
+        // finally if user is is offline, hide movieTrailersRecyclerView
+        mBinding.movieTrailersRecyclerView.setVisibility(
+                !MainActivity.isConnected ? View.GONE : View.VISIBLE);
     }
 
     public void loadThumbnail(String path) {
@@ -266,13 +269,6 @@ public class MovieDetailsActivity extends AppCompatActivity {
                 .build();
     }
 
-    private Uri buildYoutubeTrailerUrl(String videoId) {
-        return Uri.parse(BASE_YOUTUBE_URL).buildUpon()
-                .appendPath(PATH_WATCH)
-                .appendQueryParameter(VIDEO_PARAM, videoId)
-                .build();
-    }
-
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
@@ -298,5 +294,20 @@ public class MovieDetailsActivity extends AppCompatActivity {
         values.put(MovieEntry.COLUMN_RELEASE_DATE, mMovie.getmReleaseDate());
         values.put(MovieEntry.COLUMN_IS_FAVORITE_MOVIE, IS_FAVORITE_TRUE);
         return values;
+    }
+
+    private Uri buildYoutubeTrailerUri(String videoId) {
+        return Uri.parse(BASE_YOUTUBE_URL).buildUpon()
+                .appendPath(PATH_WATCH)
+                .appendQueryParameter(VIDEO_PARAM, videoId)
+                .build();
+    }
+
+    @Override
+    public void onTrailerClick(String trailerId) {
+        Uri youtubeTrailerUri = buildYoutubeTrailerUri(trailerId);
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setData(youtubeTrailerUri);
+        MovieDetailsActivity.this.startActivity(intent);
     }
 }

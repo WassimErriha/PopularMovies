@@ -1,6 +1,11 @@
 package com.example.wassim.popularmovies;
 
 import android.net.Uri;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -8,9 +13,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Scanner;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 public class QueryUtils {
     public static ArrayList<Movie> fetchMovies(String url) {
@@ -87,39 +89,41 @@ public class QueryUtils {
     }
 
     private static boolean isMovieInFavoritesArray(String movieID, ArrayList<String> favoriteMoviesArrayList) {
-        if ((favoriteMoviesArrayList != null) &&
+        return (favoriteMoviesArrayList != null) &&
                 (favoriteMoviesArrayList.size() != 0) &&
-                (favoriteMoviesArrayList.contains(movieID))) {
-            return true;
-        }
-        return false;
+                (favoriteMoviesArrayList.contains(movieID));
     }
 
-    public static String extractMovieTrailerId(String jsonResponse) {
-        String movieId = null;
+    public static ArrayList<String> extractMovieTrailerIds(String jsonResponse) {
+        ArrayList<String> arrayList = new ArrayList<>();
+        String movieId;
         try {
             JSONObject root = new JSONObject(jsonResponse);
             JSONArray results = root.getJSONArray("results");
-            JSONObject movie = results.getJSONObject(0);
-            movieId = movie.getString("key");
+            for (int i = 0; i < results.length(); i++) {
+                JSONObject movie = results.getJSONObject(i);
+                movieId = movie.getString("key");
+                arrayList.add(movieId);
+            }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return movieId;
+        return arrayList;
     }
 
-    public static String fetchTrailerId(String url) {
+    public static ArrayList<String> fetchTrailerIds(String url) {
         String httpResponse = null;
-        String trailerId = null;
+        ArrayList<String> arrayList = null;
         try {
             httpResponse = getResponseFromHttpUrl(buildUrl(url));
         } catch (IOException e) {
             e.printStackTrace();
         }
         if (httpResponse != null) {
-            trailerId = extractMovieTrailerId(httpResponse);
+            arrayList = extractMovieTrailerIds(httpResponse);
         }
-        return trailerId;
+        return arrayList;
     }
 
     public static ArrayList<Review> fetchMovieReviews(String url) {
@@ -137,7 +141,7 @@ public class QueryUtils {
     }
 
     public static ArrayList<Review> extractReviews(String jsonResponse) {
-        ArrayList<Review> fakeDataArrayList = new ArrayList();
+        ArrayList<Review> fakeDataArrayList = new ArrayList<>();
         try {
             JSONObject root = new JSONObject(jsonResponse);
             JSONArray results = root.getJSONArray("results");
