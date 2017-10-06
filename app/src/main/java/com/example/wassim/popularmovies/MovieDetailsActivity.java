@@ -3,11 +3,8 @@ package com.example.wassim.popularmovies;
 import android.annotation.SuppressLint;
 import android.content.ContentUris;
 import android.content.ContentValues;
-import android.content.Context;
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -22,10 +19,6 @@ import com.example.wassim.popularmovies.data.MovieContract.MovieEntry;
 import com.example.wassim.popularmovies.databinding.ActivityMovieDetailsBinding;
 import com.squareup.picasso.Picasso;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 
 public class MovieDetailsActivity extends AppCompatActivity
@@ -44,7 +37,6 @@ public class MovieDetailsActivity extends AppCompatActivity
     public ActivityMovieDetailsBinding mBinding;
     private RecyclerView reviewsRecyclerView;
     private ReviewsAdapter reviewsAdapter;
-    private Bitmap mPosterBitmap;
     private String movieId;
     private RecyclerView trailersRecyclerView;
     private TrailersAdapter trailersAdapter;
@@ -111,10 +103,8 @@ public class MovieDetailsActivity extends AppCompatActivity
         mBinding.addImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (!mMovie.getIsFavoriteMovie())
-                    addMovieToFavorites();
-                else
-                    deleteMovieFromFavorites();
+                if (!mMovie.getIsFavoriteMovie()) addMovieToFavorites();
+                else deleteMovieFromFavorites();
             }
         });
         trailersRecyclerView = (RecyclerView) findViewById(R.id.movie_trailers_recycler_view);
@@ -125,17 +115,8 @@ public class MovieDetailsActivity extends AppCompatActivity
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
-        //mPosterBitmap is too large to parcel out. Reload image in on Resume instead.
-        // No need to cache image in tempFile as it is cached by Picasso Lib.
         outState.putBoolean("isFavorite", mMovie.getIsFavoriteMovie());
         super.onSaveInstanceState(outState);
-    }
-
-    @Override
-    protected void onPostResume() {
-        super.onPostResume();
-        //reload poster to keep from losing reference to mPosterBitmap
-        loadPoster(BASE_IMAGE_URL + POSTER_FORMAT + mMovie.getmPosterPath());
     }
 
     /**
@@ -151,7 +132,6 @@ public class MovieDetailsActivity extends AppCompatActivity
             mBinding.addImageButton.setImageResource(R.drawable.ic_add);
             Toast.makeText(MovieDetailsActivity.this
                     , "Deleted from favorites", Toast.LENGTH_LONG).show();
-            MovieDetailsActivity.this.deleteFile(movieId + ".png");
             mMovie.setFavoriteMovie(false);
         }
     }
@@ -170,7 +150,6 @@ public class MovieDetailsActivity extends AppCompatActivity
         AsyncTask<Void, Void, Void> at = new AsyncTask<Void, Void, Void>() {
             @Override
             protected Void doInBackground(Void... voids) {
-                addImageToFileSystem(MovieDetailsActivity.this, mPosterBitmap);
                 favoriteMoviesArrayList.add(movieId);
                 mMovie.setFavoriteMovie(true);
                 getContentResolver().insert(
@@ -178,20 +157,6 @@ public class MovieDetailsActivity extends AppCompatActivity
                 return null;
             }
         }.execute();
-    }
-
-    /**
-     * This is a helper method to add an image into fileSystem.
-     */
-    private void addImageToFileSystem(Context context, Bitmap mPosterBitmap) {
-        String fileName = mMovie.getmID() + ".png";
-        final FileOutputStream fos;
-        try {
-            fos = openFileOutput(fileName, MODE_PRIVATE);
-            mPosterBitmap.compress(Bitmap.CompressFormat.PNG, 90, fos);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
     }
 
     public void toggleReviewsRecyclerView(View v) {
@@ -205,7 +170,6 @@ public class MovieDetailsActivity extends AppCompatActivity
     private void bindDataToViews() {
         mBinding = (DataBindingUtil.setContentView(this, R.layout.activity_movie_details));
         String overview = "\t\t\t" + mMovie.getmOverview();
-
         String vote = mMovie.getmVoteAverage() + "/10";
         mBinding.movieOverview.setText(overview);
         mBinding.movieTitle.setText(mMovie.getmTitle());
@@ -215,15 +179,8 @@ public class MovieDetailsActivity extends AppCompatActivity
         mBinding.releaseDateTv2.setText(mMovie.getmReleaseDate());
         if (mMovie.getIsFavoriteMovie())
             mBinding.addImageButton.setImageResource(R.drawable.ic_done);
-        String filePath = mMovie.getmID() + ".png";
-        File imgFile = new File(this.getFilesDir(), filePath);
-        if (imgFile.exists()) {
-            mBinding.daMoviePoster.setImageBitmap(BitmapFactory.decodeFile(imgFile.getAbsolutePath()));
-            mBinding.thumbnail.setVisibility(View.GONE);
-        } else {
-            loadPoster(BASE_IMAGE_URL + POSTER_FORMAT + mMovie.getmPosterPath());
-            loadThumbnail(BASE_IMAGE_URL + POSTER_FORMAT + mMovie.getmThumbnail());
-        }
+        loadPoster(BASE_IMAGE_URL + POSTER_FORMAT + mMovie.getmPosterPath());
+        loadThumbnail(BASE_IMAGE_URL + POSTER_FORMAT + mMovie.getmThumbnail());
         // finally if user is is offline, hide movieTrailersRecyclerView
         mBinding.movieTrailersRecyclerView.setVisibility(
                 !Utility.isNetworkAvailable(this) ? View.GONE : View.VISIBLE);
@@ -238,26 +195,11 @@ public class MovieDetailsActivity extends AppCompatActivity
     }
 
     public void loadPoster(final String path) {
-        // get bitmap ready for insertion into file system if mMovie is to be saved to database
-        Thread thread = new Thread(new Runnable() {
-            public void run() {
-                try {
-                    mPosterBitmap = Picasso.with(MovieDetailsActivity.this).load(path).get();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-        thread.start();
-        try {
-            // waits for thread to finish so inserting bitmap into
-            // filesystem won't throw null pointer exception
-            thread.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        if (mPosterBitmap != null)
-            mBinding.daMoviePoster.setImageBitmap(mPosterBitmap);
+        Picasso.with(this)
+                .load(path)
+                .placeholder(R.drawable.image_place_holder)
+                .error(R.drawable.error_image)
+                .into(mBinding.daMoviePoster);
     }
 
     private Uri buildMovieUrlWithId(String id, String path) {

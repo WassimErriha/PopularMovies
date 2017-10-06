@@ -2,7 +2,6 @@ package com.example.wassim.popularmovies;
 
 import android.content.Context;
 import android.database.Cursor;
-import android.graphics.BitmapFactory;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,7 +11,6 @@ import android.widget.ImageView;
 import com.example.wassim.popularmovies.data.MovieContract.MovieEntry;
 import com.squareup.picasso.Picasso;
 
-import java.io.File;
 import java.util.ArrayList;
 
 public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> {
@@ -46,24 +44,20 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> 
 
     public void onBindViewHolder(ViewHolder holder, int position) {
         boolean isFavoriteMovie = false;
+        String posterPath = null;
         if (mArrayListData != null) {
             Movie movie = mArrayListData.get(position);
-            String posterPath = movie.getmPosterPath();
+            posterPath = movie.getmPosterPath();
             isFavoriteMovie = movie.getIsFavoriteMovie();
-            loadImage(BASE_IMAGE_URL + POSTER_FORMAT + posterPath, holder);
         } else if (mCursorData.moveToPosition(position)) {
-            String filePath = mCursorData.getString(
-                    mCursorData.getColumnIndex(MovieEntry.COLUMN_MOVIE_ID)) + ".png";
-            File imgFile = new File(mContext.getFilesDir(), filePath);
-            if (imgFile.exists())
-                holder.imageView.setImageBitmap(BitmapFactory.decodeFile(imgFile.getAbsolutePath()));
+            posterPath = mCursorData.getString(
+                    mCursorData.getColumnIndex(MovieEntry.COLUMN_POSTER_PATH));
             isFavoriteMovie = mCursorData.getInt(mCursorData
                     .getColumnIndex(MovieEntry.COLUMN_IS_FAVORITE_MOVIE)) == 1;
         }
-        if (isFavoriteMovie)
-            holder.favoriteMovieIcon.setVisibility(View.VISIBLE);
-        else
-            holder.favoriteMovieIcon.setVisibility(View.INVISIBLE);
+        loadImage(BASE_IMAGE_URL + POSTER_FORMAT + posterPath, holder);
+        if (isFavoriteMovie) holder.favoriteMovieIcon.setVisibility(View.VISIBLE);
+        else holder.favoriteMovieIcon.setVisibility(View.INVISIBLE);
     }
 
     public int getItemCount() {
