@@ -28,7 +28,7 @@ public class MainActivity extends AppCompatActivity
     private static final int CURSOR_LOADER_ID = 2;
     public static String BASE_URL = "https://api.themoviedb.org/3/movie";
     public static String API_KEY_PARAM = "api_key";
-    public static String API_KEY = "<>API_KEY";  //TODO insert api key here
+    public static String API_KEY = "<API_KEY>";  //TODO insert api key here
     public static String LANGUAGE_PARAM = "language";
     public static String LANGUAGE_VALUE = "en";
     public static ArrayList<String> favoriteMoviesArrayList;
