@@ -1,31 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    tools:background="@color/colorPrimaryDark">
 
     <TextView
         android:id="@+id/review_author_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:paddingLeft="8dp"
         android:textColor="#FFFFFF"
         android:textSize="30sp"
-        tools:text="Name"
-        android:paddingLeft="8dp"/>
+        tools:text="Name" />
 
     <TextView
         android:id="@+id/review_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:paddingLeft="16dp"
         android:textColor="#FFFFFF"
         android:textSize="12sp"
-        tools:text="Text"
-        android:paddingLeft="16dp"/>
+        tools:text="Text" />
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:background="@color/colorAccent"
         android:layout_marginBottom="8dp"
-        android:layout_marginTop="8dp"/>
+        android:layout_marginTop="8dp"
+        android:background="@color/colorAccent" />
 </LinearLayout>

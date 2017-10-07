@@ -10,6 +10,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.MenuItem;
 import android.view.View;
@@ -70,7 +71,8 @@ public class MovieDetailsActivity extends AppCompatActivity
                     @Override
                     protected void onPostExecute(ArrayList<String> trailerIds) {
                         if (trailerIds != null) {
-                            trailersAdapter = new TrailersAdapter(trailerIds, MovieDetailsActivity.this);
+                            trailersAdapter = new TrailersAdapter(MovieDetailsActivity.this
+                                    , trailerIds, MovieDetailsActivity.this);
                             trailersRecyclerView.setAdapter(trailersAdapter);
                         }
                     }
@@ -108,8 +110,8 @@ public class MovieDetailsActivity extends AppCompatActivity
             }
         });
         trailersRecyclerView = (RecyclerView) findViewById(R.id.movie_trailers_recycler_view);
-        trailersRecyclerView.setLayoutManager(new GridLayoutManager(MovieDetailsActivity.this
-                , 1));
+        trailersRecyclerView.setLayoutManager(new LinearLayoutManager(this,
+                LinearLayoutManager.HORIZONTAL, false));
         trailersRecyclerView.setHasFixedSize(true);
     }
 
