@@ -180,8 +180,14 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void onPosterClick(Movie movie) {
+
+        ImageView imageView = (ImageView) findViewById(R.id.movie_poster);
         Intent intent = new Intent(MainActivity.this, MovieDetailsActivity.class);
         intent.putExtra("movie", movie);
         startActivity(intent);
+        // shared element transition
+//        ActivityOptionsCompat options = ActivityOptionsCompat.
+//                makeSceneTransitionAnimation(this,imageView, ViewCompat.getTransitionName(imageView));
+//        startActivity(intent, options.toBundle());
     }
 }
