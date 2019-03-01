@@ -6,9 +6,12 @@ import android.content.Loader;
 import android.content.pm.ActivityInfo;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.support.v4.app.ActivityOptionsCompat;
+import android.support.v4.view.ViewCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -28,7 +31,7 @@ public class MainActivity extends AppCompatActivity
     private static final int CURSOR_LOADER_ID = 2;
     public static String BASE_URL = "https://api.themoviedb.org/3/movie";
     public static String API_KEY_PARAM = "api_key";
-    public static String API_KEY = "<API_KEY>";  //TODO insert api key here
+    public static String API_KEY = "663b8dc7814a2f9ae1491a69dcaa907e";  //TODO insert api key here
     public static String LANGUAGE_PARAM = "language";
     public static String LANGUAGE_VALUE = "en";
     public static ArrayList<String> favoriteMoviesArrayList;
@@ -59,6 +62,7 @@ public class MainActivity extends AppCompatActivity
         recyclerView.setLayoutManager(new GridLayoutManager(this, Utility.calculateNoOfColumns(this)));
         recyclerView.setHasFixedSize(true);
         url = Utility.buildUrlWithPath(mMoviesPath);
+        Log.e("URL>>>>>", url.toString() );
         showProgressBar();
         boolean isConnected = Utility.isNetworkAvailable(this);
         if (isConnected) {
@@ -184,10 +188,9 @@ public class MainActivity extends AppCompatActivity
         ImageView imageView = (ImageView) findViewById(R.id.movie_poster);
         Intent intent = new Intent(MainActivity.this, MovieDetailsActivity.class);
         intent.putExtra("movie", movie);
-        startActivity(intent);
+        //startActivity(intent);
         // shared element transition
-//        ActivityOptionsCompat options = ActivityOptionsCompat.
-//                makeSceneTransitionAnimation(this,imageView, ViewCompat.getTransitionName(imageView));
-//        startActivity(intent, options.toBundle());
+        ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(this,imageView, ViewCompat.getTransitionName(imageView));
+        startActivity(intent, options.toBundle());
     }
 }

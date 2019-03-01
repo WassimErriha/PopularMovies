@@ -154,8 +154,7 @@ public class MovieDetailsActivity extends AppCompatActivity
             protected Void doInBackground(Void... voids) {
                 favoriteMoviesArrayList.add(movieId);
                 mMovie.setFavoriteMovie(true);
-                getContentResolver().insert(
-                        MovieEntry.CONTENT_URI, movieContentValues());
+                getContentResolver().insert(MovieEntry.CONTENT_URI, movieContentValues());
                 return null;
             }
         }.execute();
